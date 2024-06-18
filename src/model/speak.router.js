@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { getHomeData, searchSpeakersByField, getSpeakerDetailsById, addFavoriteController, getFavoritesController, deleteFavoriteController } = require('./speak.controller');
-const { checkToken } = require('../../auth/validate');
+const { getSpeakerDetailsById, searchSpeakersByField, addFavoriteController, getFavoritesController, deleteFavoriteController, getMostFavorited, getRandomRecommendedSpeakersController } = require('./speak.controller');
 
-router.get('/home', getHomeData, checkToken);
+router.get('/populer', getMostFavorited);
 router.get('/speaker/:id', getSpeakerDetailsById);
-router.get('/search/speakers', searchSpeakersByField);
-router.post('/favorite/add', addFavoriteController);
-router.get('/favorite/:userId', getFavoritesController);
-router.delete('/favorite/delete', deleteFavoriteController);
+router.get('/search', searchSpeakersByField);
+router.post('/favorites', addFavoriteController);
+router.get('/favorites/:userId', getFavoritesController);
+router.delete('/favorites', deleteFavoriteController);
+router.get('/recommendations', getRandomRecommendedSpeakersController);
 
 module.exports = router;
