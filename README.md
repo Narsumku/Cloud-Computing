@@ -1,86 +1,167 @@
-# Speaker Router
+### Backend API Documentation
 
-This router handles endpoints related to speakers in the Speaker Recommendation System.
+This document provides an overview of the backend API endpoints and functionality for managing users and speaker data.
 
-## Endpoints
+### Table of Contents
+1. [User Management API](#user-management-api)
+   - [Endpoints](#endpoints)
+     - `/register`
+     - `/login`
+     - `/users`
+     - `/users/:id`
+     - `/users/update/:id`
+     - `/users/delete/:id`
+     - `/preferences`
+2. [Speaker Data API](#speaker-data-api)
+   - [Endpoints](#endpoints-1)
+     - `/populer`
+     - `/speaker/:id`
+     - `/search`
+     - `/favorites`
+     - `/favorites/:userId`
+     - `/recommendations`
 
-- **Get Most Favorited Speakers**
-  - Endpoint: `GET /api/speakers/populer`
-  - Description: Fetches a list of the most favorited speakers.
-  - Controller: `getMostFavorited` (in `speak.controller.js`)
+---
 
-- **Get Speaker Details by ID**
-  - Endpoint: `GET /api/speakers/speaker/:id`
-  - Description: Fetches details of a speaker by their ID.
-  - Controller: `getSpeakerDetailsById` (in `speak.controller.js`)
+## User Management API
 
-- **Search Speakers by Field**
-  - Endpoint: `GET /api/speakers/search`
-  - Description: Searches speakers based on a specific field (e.g., Business, Entertainment, etc.).
-  - Controller: `searchSpeakersByField` (in `speak.controller.js`)
+### Endpoints
 
-- **Add Favorite Speaker**
-  - Endpoint: `POST /api/speakers/favorites`
-  - Description: Adds a speaker to the user's favorites.
-  - Controller: `addFavoriteController` (in `speak.controller.js`)
+#### `/register`
+- **Method:** POST
+- **Description:** Register a new user.
+- **Request Body:** 
+  ```json
+  {
+    "username": "example",
+    "email": "example@example.com",
+    "password": "password"
+  }
+  ```
+- **Response:** 
+  - `200 OK` on success
+  - `400 Bad Request` if username or email already exists
 
-- **Get User's Favorite Speakers**
-  - Endpoint: `GET /api/speakers/favorites/:userId`
-  - Description: Fetches a list of speakers favorited by a specific user.
-  - Controller: `getFavoritesController` (in `speak.controller.js`)
+#### `/login`
+- **Method:** POST
+- **Description:** Authenticate user credentials and generate JWT token.
+- **Request Body:** 
+  ```json
+  {
+    "email": "example@example.com",
+    "password": "password"
+  }
+  ```
+- **Response:** 
+  - `200 OK` with JWT token on successful login
+  - `401 Unauthorized` if credentials are invalid
 
-- **Delete Favorite Speaker**
-  - Endpoint: `DELETE /api/speakers/favorites`
-  - Description: Deletes a speaker from the user's favorites.
-  - Controller: `deleteFavoriteController` (in `speak.controller.js`)
+#### `/users`
+- **Method:** GET
+- **Description:** Get a list of all users.
+- **Authentication:** JWT token required
+- **Response:** 
+  - `200 OK` with list of users
 
-- **Get Random Recommended Speakers**
-  - Endpoint: `GET /api/speakers/recommendations`
-  - Description: Fetches a list of randomly recommended speakers.
-  - Controller: `getRandomRecommendedSpeakersController` (in `speak.controller.js`)
+#### `/users/:id`
+- **Method:** GET
+- **Description:** Get user details by ID.
+- **Authentication:** JWT token required
+- **Response:** 
+  - `200 OK` with user details
+  - `404 Not Found` if user ID does not exist
 
-# User Router
+#### `/users/update/:id`
+- **Method:** PATCH
+- **Description:** Update user details by ID.
+- **Authentication:** JWT token required
+- **Request Body:** 
+  ```json
+  {
+    "username": "new_username",
+    "email": "new_email@example.com",
+    "password": "new_password"
+  }
+  ```
+- **Response:** 
+  - `200 OK` on success
+  - `404 Not Found` if user ID does not exist
 
-This router handles endpoints related to users in the Speaker Recommendation System.
+#### `/users/delete/:id`
+- **Method:** DELETE
+- **Description:** Delete user by ID.
+- **Authentication:** JWT token required
+- **Response:** 
+  - `200 OK` on success
+  - `404 Not Found` if user ID does not exist
 
-## Endpoints
+#### `/preferences`
+- **Method:** POST
+- **Description:** Save or update user preferences.
+- **Authentication:** JWT token required
+- **Request Body:** 
+  ```json
+  {
+    "userId": "user_id",
+    "preferences": [1, 0, 1, 1, 0, 0, 1, 0]
+  }
+  ```
+- **Response:** 
+  - `200 OK` on success
+  - `400 Bad Request` if preferences format is invalid
 
-- **Register User**
-  - Endpoint: `POST /api/users/register`
-  - Description: Registers a new user.
-  - Controller: `createUser` (in `user.controller.js`)
+---
 
-- **User Login**
-  - Endpoint: `POST /api/users/login`
-  - Description: Logs in an existing user.
-  - Controller: `login` (in `user.controller.js`)
+## Speaker Data API
 
-- **Get All Users**
-  - Endpoint: `GET /api/users`
-  - Description: Fetches a list of all users.
-  - Middleware: `checkToken` (from `auth/validate.js`)
-  - Controller: `getUsers` (in `user.controller.js`)
+### Endpoints
 
-- **Get User by ID**
-  - Endpoint: `GET /api/users/:id`
-  - Description: Fetches details of a user by their ID.
-  - Middleware: `checkToken` (from `auth/validate.js`)
-  - Controller: `getUserByID` (in `user.controller.js`)
+#### `/populer`
+- **Method:** GET
+- **Description:** Get the most favorited speakers.
+- **Response:** 
+  - `200 OK` with list of speakers
 
-- **Update User**
-  - Endpoint: `PATCH /api/users/update/:id`
-  - Description: Updates details of a user by their ID.
-  - Middleware: `checkToken` (from `auth/validate.js`)
-  - Controller: `updateUser` (in `user.controller.js`)
+#### `/speaker/:id`
+- **Method:** GET
+- **Description:** Get speaker details by ID.
+- **Response:** 
+  - `200 OK` with speaker details
+  - `404 Not Found` if speaker ID does not exist
 
-- **Delete User**
-  - Endpoint: `DELETE /api/users/delete/:id`
-  - Description: Deletes a user by their ID.
-  - Middleware: `checkToken` (from `auth/validate.js`)
-  - Controller: `deleteUser` (in `user.controller.js`)
+#### `/search`
+- **Method:** GET
+- **Description:** Search speakers by keyword.
+- **Query Parameters:** `keyword`
+- **Response:** 
+  - `200 OK` with list of matching speakers
 
-- **Save User Preferences**
-  - Endpoint: `POST /api/users/preferences`
-  - Description: Saves preferences for a user.
-  - Middleware: `checkToken` (from `auth/validate.js`)
-  - Controller: `saveUserPreferences` (in `user.controller.js`)
+#### `/favorites`
+- **Method:** POST
+- **Description:** Add a speaker to user favorites.
+- **Authentication:** JWT token required
+- **Request Body:** 
+  ```json
+  {
+    "userId": "user_id",
+    "speakerId": "speaker_id"
+  }
+  ```
+- **Response:** 
+  - `200 OK` on success
+  - `400 Bad Request` if speaker is already a favorite
+
+#### `/favorites/:userId`
+- **Method:** GET
+- **Description:** Get user's favorite speakers.
+- **Authentication:** JWT token required
+- **Response:** 
+  - `200 OK` with list of favorite speakers
+
+#### `/recommendations`
+- **Method:** GET
+- **Description:** Get random recommended speakers.
+- **Response:** 
+  - `200 OK` with list of recommended speakers
+
+---
