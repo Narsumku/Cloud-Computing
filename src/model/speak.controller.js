@@ -1,9 +1,9 @@
-const { getHomeSpeakers, getSpeakerDetails, searchSpeakers, getFavorites, addFavorite, deleteFavorite } = require('./speak.service');
+const { getSpeakerDetails, searchSpeakers, getFavorites, addFavorite, deleteFavorite, getMostFavoritedSpeakers, getRandomRecommendedSpeakers } = require('./speak.service');
 
 // MENU HOME BERISI SPEAKER PALING FAVORIT DAN RANDOM SPEAKER
-const getHomeData = async (req, res) => {
+const getMostFavorited = async (req, res) => {
   try {
-    const data = await getHomeSpeakers();
+    const data = await getMostFavoritedSpeakers();
     res.status(200).json(data);
   } catch (error) {
     console.error('Error fetching home data:', error);
@@ -11,23 +11,7 @@ const getHomeData = async (req, res) => {
   }
 };
 
-module.exports = {
-  getHomeData,
-};
-
-const getField = (speaker) => {
-  if (speaker.Business) return 'Business';
-  if (speaker.Entertainment) return 'Entertainment';
-  if (speaker.Politics) return 'Politics';
-  if (speaker.Sport) return 'Sport';
-  if (speaker.Tech) return 'Tech';
-  if (speaker.Healthcare) return 'Healthcare';
-  if (speaker.Academic) return 'Academic';
-  if (speaker['Media_News']) return 'Media_News';
-  return null;
-};
-
-/// MENAMPILKAN DETAIL DARI SPEAKER
+// MENAMPILKAN DETAIL DARI SPEAKER
 const getSpeakerDetailsById = async (req, res) => {
   const { id } = req.params;
   try {
@@ -42,7 +26,7 @@ const getSpeakerDetailsById = async (req, res) => {
   }
 };
 
-/// MENCARI SPEAKER BERDASARKAN BIDANGNYA
+// MENCARI SPEAKER BERDASARKAN BIDANGNYA
 const searchSpeakersByField = async (req, res) => {
   const { keyword } = req.query;
   if (!keyword) {
@@ -112,11 +96,22 @@ const deleteFavoriteController = async (req, res) => {
   }
 };
 
+const getRandomRecommendedSpeakersController = async (req, res) => {
+  try {
+    const speakers = await getRandomRecommendedSpeakers();
+    res.status(200).json(speakers);
+  } catch (error) {
+    console.error('Error fetching random recommended speakers:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 module.exports = {
-  getHomeData,
+  getMostFavorited,
   getSpeakerDetailsById,
   searchSpeakersByField,
   addFavoriteController,
   getFavoritesController,
   deleteFavoriteController,
+  getRandomRecommendedSpeakersController,
 };
