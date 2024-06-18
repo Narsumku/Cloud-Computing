@@ -1,39 +1,5 @@
 const pool = require('../../config/database'); // Ubah path sesuai dengan lokasi file db.js Anda
 
-const getHomeSpeakers = async () => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const popularSpeakers = await getMostFavoritedSpeakers();
-      const allSpeakers = await getAllSpeakers();
-
-      const randomSpeakers = allSpeakers
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 7)
-        .map((speaker) => ({
-          speaker_id: speaker.speaker_id,
-          'Full Name': speaker['Full Name'],
-          Rating: speaker['Rating'],
-          Experience: speaker['Experience'],
-          Field: speaker['Field'],
-        }));
-
-      // Tambahkan speaker_id, Field, dan Favorite Count ke popularSpeakers
-      const formattedPopularSpeakers = popularSpeakers.map((speaker) => ({
-        speaker_id: speaker.speaker_id,
-        'Full Name': speaker['Full Name'],
-        Rating: speaker['Rating'],
-        Experience: speaker['Experience'],
-        Field: speaker['Field'],
-        'Favorite Count': speaker['Favorite Count'],
-      }));
-
-      resolve({ popularSpeakers: formattedPopularSpeakers, randomSpeakers });
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
 const getMostFavoritedSpeakers = async () => {
   return new Promise((resolve, reject) => {
     pool.query(
@@ -41,6 +7,7 @@ const getMostFavoritedSpeakers = async () => {
       SELECT 
           d.speaker_id,
           d.full_name AS \`Full Name\`,
+          d.profile_pic_url,  -- Menambahkan kolom profile_pic_url
           ROUND(IFNULL(ssd.rating_ave, 0), 1) AS \`Rating\`,
           CASE
             WHEN d.Category_1 IS NOT NULL THEN d.Category_1
@@ -57,7 +24,10 @@ const getMostFavoritedSpeakers = async () => {
       LEFT JOIN 
           user_favorites uf ON d.speaker_id = uf.speaker_id
       GROUP BY 
-          d.speaker_id, d.full_name, ssd.rating_ave, ssd.Business, ssd.Entertainment, ssd.Politics, ssd.Sport, ssd.Tech, ssd.Healthcare, ssd.Academic, ssd.Media_News
+          d.speaker_id, d.full_name, d.profile_pic_url,  -- Menambahkan profile_pic_url ke GROUP BY
+          ssd.rating_ave, ssd.Business, ssd.Entertainment, 
+          ssd.Politics, ssd.Sport, ssd.Tech, ssd.Healthcare, 
+          ssd.Academic, ssd.Media_News
       ORDER BY 
           COUNT(uf.user_id) DESC
       LIMIT 5;
@@ -142,104 +112,114 @@ const getSpeakerDetails = async (speakerId) => {
 const searchSpeakers = async (keyword) => {
   return new Promise((resolve, reject) => {
     const query = `
-      SELECT 
-        d.speaker_id,
-        d.full_name AS name,
-        ROUND(ssd.rating_ave, 1) AS rating,
-        'Business' AS field
-      FROM data d
-      INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
-      WHERE ssd.Business = 1 AND LOWER('business') LIKE LOWER(?)
-      
-      UNION
-      
-      SELECT 
-        d.speaker_id,
-        d.full_name AS name,
-        ROUND(ssd.rating_ave, 1) AS rating,
-        'Entertainment' AS field
-      FROM data d
-      INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
-      WHERE ssd.Entertainment = 1 AND LOWER('entertainment') LIKE LOWER(?)
-      
-      UNION
-      
-      SELECT 
-        d.speaker_id,
-        d.full_name AS name,
-        ROUND(ssd.rating_ave, 1) AS rating,
-        'Politics' AS field
-      FROM data d
-      INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
-      WHERE ssd.Politics = 1 AND LOWER('politics') LIKE LOWER(?)
-      
-      UNION
-      
-      SELECT 
-        d.speaker_id,
-        d.full_name AS name,
-        ROUND(ssd.rating_ave, 1) AS rating,
-        'Sport' AS field
-      FROM data d
-      INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
-      WHERE ssd.Sport = 1 AND LOWER('sport') LIKE LOWER(?)
-      
-      UNION
-      
-      SELECT 
-        d.speaker_id,
-        d.full_name AS name,
-        ROUND(ssd.rating_ave, 1) AS rating,
-        'Tech' AS field
-      FROM data d
-      INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
-      WHERE ssd.Tech = 1 AND LOWER('tech') LIKE LOWER(?)
-      
-      UNION
-      
-      SELECT 
-        d.speaker_id,
-        d.full_name AS name,
-        ROUND(ssd.rating_ave, 1) AS rating,
-        'Healthcare' AS field
-      FROM data d
-      INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
-      WHERE ssd.Healthcare = 1 AND LOWER('healthcare') LIKE LOWER(?)
-      
-      UNION
-      
-      SELECT 
-        d.speaker_id,
-        d.full_name AS name,
-        ROUND(ssd.rating_ave, 1) AS rating,
-        'Academic' AS field
-      FROM data d
-      INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
-      WHERE ssd.Academic = 1 AND LOWER('academic') LIKE LOWER(?)
-      
-      UNION
-      
-      SELECT 
-        d.speaker_id,
-        d.full_name AS name,
-        ROUND(ssd.rating_ave, 1) AS rating,
-        'Media_News' AS field
-      FROM data d
-      INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
-      WHERE ssd.Media_News = 1 AND LOWER('media_news') LIKE LOWER(?)
-      
-      ORDER BY 
-        CASE
-          WHEN LOWER('business') LIKE LOWER(?) THEN 1
-          WHEN LOWER('entertainment') LIKE LOWER(?) THEN 2
-          WHEN LOWER('politics') LIKE LOWER(?) THEN 3
-          WHEN LOWER('sport') LIKE LOWER(?) THEN 4
-          WHEN LOWER('tech') LIKE LOWER(?) THEN 5
-          WHEN LOWER('healthcare') LIKE LOWER(?) THEN 6
-          WHEN LOWER('academic') LIKE LOWER(?) THEN 7
-          WHEN LOWER('media_news') LIKE LOWER(?) THEN 8
-          ELSE 9
-        END
+SELECT 
+    d.speaker_id,
+    d.full_name AS name,
+    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    ROUND(ssd.rating_ave, 1) AS rating,
+    'Business' AS field
+FROM data d
+INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
+WHERE ssd.Business = 1 AND LOWER('business') LIKE LOWER(?)
+
+UNION
+
+SELECT 
+    d.speaker_id,
+    d.full_name AS name,
+    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    ROUND(ssd.rating_ave, 1) AS rating,
+    'Entertainment' AS field
+FROM data d
+INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
+WHERE ssd.Entertainment = 1 AND LOWER('entertainment') LIKE LOWER(?)
+
+UNION
+
+SELECT 
+    d.speaker_id,
+    d.full_name AS name,
+    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    ROUND(ssd.rating_ave, 1) AS rating,
+    'Politics' AS field
+FROM data d
+INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
+WHERE ssd.Politics = 1 AND LOWER('politics') LIKE LOWER(?)
+
+UNION
+
+SELECT 
+    d.speaker_id,
+    d.full_name AS name,
+    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    ROUND(ssd.rating_ave, 1) AS rating,
+    'Sport' AS field
+FROM data d
+INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
+WHERE ssd.Sport = 1 AND LOWER('sport') LIKE LOWER(?)
+
+UNION
+
+SELECT 
+    d.speaker_id,
+    d.full_name AS name,
+    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    ROUND(ssd.rating_ave, 1) AS rating,
+    'Tech' AS field
+FROM data d
+INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
+WHERE ssd.Tech = 1 AND LOWER('tech') LIKE LOWER(?)
+
+UNION
+
+SELECT 
+    d.speaker_id,
+    d.full_name AS name,
+    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    ROUND(ssd.rating_ave, 1) AS rating,
+    'Healthcare' AS field
+FROM data d
+INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
+WHERE ssd.Healthcare = 1 AND LOWER('healthcare') LIKE LOWER(?)
+
+UNION
+
+SELECT 
+    d.speaker_id,
+    d.full_name AS name,
+    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    ROUND(ssd.rating_ave, 1) AS rating,
+    'Academic' AS field
+FROM data d
+INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
+WHERE ssd.Academic = 1 AND LOWER('academic') LIKE LOWER(?)
+
+UNION
+
+SELECT 
+    d.speaker_id,
+    d.full_name AS name,
+    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    ROUND(ssd.rating_ave, 1) AS rating,
+    'Media_News' AS field
+FROM data d
+INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
+WHERE ssd.Media_News = 1 AND LOWER('media_news') LIKE LOWER(?)
+
+ORDER BY 
+    CASE
+        WHEN LOWER('business') LIKE LOWER(?) THEN 1
+        WHEN LOWER('entertainment') LIKE LOWER(?) THEN 2
+        WHEN LOWER('politics') LIKE LOWER(?) THEN 3
+        WHEN LOWER('sport') LIKE LOWER(?) THEN 4
+        WHEN LOWER('tech') LIKE LOWER(?) THEN 5
+        WHEN LOWER('healthcare') LIKE LOWER(?) THEN 6
+        WHEN LOWER('academic') LIKE LOWER(?) THEN 7
+        WHEN LOWER('media_news') LIKE LOWER(?) THEN 8
+        ELSE 9
+    END;
+
+
     `;
     const params = Array(9).fill(`%${keyword.toLowerCase()}%`);
 
@@ -349,6 +329,42 @@ const deleteFavorite = async (userId, speakerId) => {
   });
 };
 
+const getRandomRecommendedSpeakers = async () => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      `
+      SELECT 
+          d.speaker_id,
+          d.full_name AS \`Full Name\`,
+          ROUND(IFNULL(ssd.rating_ave, 0), 1) AS \`Rating\`,
+          d.Experience AS \`Experience\`,
+          d.profile_pic_url AS \`Profile Picture\`,
+          CASE
+            WHEN d.Category_1 IS NOT NULL THEN d.Category_1
+            WHEN d.Category_2 IS NOT NULL THEN d.Category_2
+            WHEN d.Category_3 IS NOT NULL THEN d.Category_3
+            ELSE 'Unknown'
+          END AS \`Field\`
+      FROM 
+          data d
+      LEFT JOIN 
+          speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
+      WHERE 
+          d.Category_1 IS NOT NULL OR d.Category_2 IS NOT NULL OR d.Category_3 IS NOT NULL
+      ORDER BY 
+          RAND()
+      LIMIT 7;
+      `,
+      (error, results, fields) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve(results);
+      }
+    );
+  });
+};
+
 module.exports = {
   getAllSpeakers,
   getSpeakerDetails,
@@ -357,5 +373,5 @@ module.exports = {
   getFavorites,
   deleteFavorite,
   getMostFavoritedSpeakers,
-  getHomeSpeakers,
+  getRandomRecommendedSpeakers,
 };
