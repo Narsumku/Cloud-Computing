@@ -1,25 +1,28 @@
-### Backend API Documentation
+# Backend API Documentation
 
 This document provides an overview of the backend API endpoints and functionality for managing users and speaker data.
 
-### Table of Contents
-1. [User Management API](#user-management-api)
-   - [Endpoints](#endpoints)
-     - `/register`
-     - `/login`
-     - `/users`
-     - `/users/:id`
-     - `/users/update/:id`
-     - `/users/delete/:id`
-     - `/preferences`
-2. [Speaker Data API](#speaker-data-api)
-   - [Endpoints](#endpoints-1)
-     - `/populer`
-     - `/speaker/:id`
-     - `/search`
-     - `/favorites`
-     - `/favorites/:userId`
-     - `/recommendations`
+## Setup and Installation
+
+1. Clone the repository:
+    ```sh
+    git clone https://github.com/Narsumku/Cloud-Computing.git
+    ```
+
+2. Navigate to the project directory:
+    ```sh
+    cd Cloud-Computing
+    ```
+
+3. Install dependencies:
+    ```sh
+    npm install
+    ```
+
+4. Start the server:
+    ```sh
+    npm run start
+    ```
 
 ---
 
@@ -151,6 +154,20 @@ This document provides an overview of the backend API endpoints and functionalit
   - `200 OK` on success
   - `400 Bad Request` if speaker is already a favorite
 
+ #### `/favorites`
+- **Method:** DELETE
+- **Description:** Deletes a favorite item by ID.
+- **Authentication:** JWT token required
+- **Request Body:** 
+  ```json
+  {
+    "userId": "user_id",
+    "speakerId": "speaker_id"
+  }
+  ```
+- **Response:** 
+  - `200 OK` Favorite deleted successfully
+  
 #### `/favorites/:userId`
 - **Method:** GET
 - **Description:** Get user's favorite speakers.
@@ -165,3 +182,13 @@ This document provides an overview of the backend API endpoints and functionalit
   - `200 OK` with list of recommended speakers
 
 ---
+## License
+
+This project is licensed under the MIT License.
+
+<p align="left">
+  <img src="https://nodejs.org/static/logos/nodejsDark.svg" alt="Node.js" width="200"/>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/7/79/Docker_%28container_engine%29_logo.png" alt="DockerContainer" width="200"/>
+   <br>
+  <img src="https://www.gstatic.com/devrel-devsite/prod/v0e0f589edd85502a40d78d7d0825db8ea5ef3b99ab4070381ee86977c9168730/cloud/images/cloud-logo.svg" alt="GoogleCloud" width="300"/>
+</p>
