@@ -289,7 +289,8 @@ SELECT DISTINCT
         WHEN ssd.Academic = 1 THEN 'Academic'
         WHEN ssd.Media_News = 1 THEN 'Media News'
         ELSE ''
-    END AS Field
+    END AS Field,
+    d.profile_pic_url
 FROM (
     SELECT uf.speaker_id, MAX(ssd.rating_ave) AS max_rating
     FROM user_favorites uf
@@ -300,7 +301,6 @@ FROM (
 ) AS max_rating_data
 INNER JOIN data d ON max_rating_data.speaker_id = d.speaker_id
 INNER JOIN speaker_side_data ssd ON d.speaker_id = ssd.speaker_id AND ssd.rating_ave = max_rating_data.max_rating;
-
     `;
 
     pool.query(query, [userId], (error, results, fields) => {
