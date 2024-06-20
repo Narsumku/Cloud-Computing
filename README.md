@@ -191,7 +191,7 @@ This document provides an overview of the backend API endpoints and functionalit
 
 Replace `<token>` with the actual JWT token obtained from the authentication process.
 
-This collection covers various endpoints for user management, preferences, recommendations, and speaker operations within the NARSUMKU-REST API.
+##### This collection covers various endpoints for user management, preferences, recommendations, and speaker operations within the NARSUMKU-REST API.
 ---
 ## License
 
