@@ -26,161 +26,172 @@ This document provides an overview of the backend API endpoints and functionalit
 
 ---
 
-## User Management API
+## NARSUMKU REST-API
 
-### Endpoints
+#### Endpoints
 
-#### `/register`
-- **Method:** POST
-- **Description:** Register a new user.
-- **Request Body:** 
-  ```json
-  {
-    "username": "example",
-    "email": "example@example.com",
-    "password": "password"
-  }
-  ```
-- **Response:** 
-  - `200 OK` on success
-  - `400 Bad Request` if username or email already exists
+1. **REGISTER**
 
-#### `/login`
-- **Method:** POST
-- **Description:** Authenticate user credentials and generate JWT token.
-- **Request Body:** 
-  ```json
-  {
-    "email": "example@example.com",
-    "password": "password"
-  }
-  ```
-- **Response:** 
-  - `200 OK` with JWT token on successful login
-  - `401 Unauthorized` if credentials are invalid
+   - **Method**: POST
+   - **URL**: `[BASE_URL]/register`
+   - **Body**: 
+     ```json
+     {
+       "username": "user",
+       "email": "user@com",
+       "password": "123"
+     }
+     ```
 
-#### `/users`
-- **Method:** GET
-- **Description:** Get a list of all users.
-- **Authentication:** JWT token required
-- **Response:** 
-  - `200 OK` with list of users
+2. **LOGIN**
 
-#### `/users/:id`
-- **Method:** GET
-- **Description:** Get user details by ID.
-- **Authentication:** JWT token required
-- **Response:** 
-  - `200 OK` with user details
-  - `404 Not Found` if user ID does not exist
+   - **Method**: POST
+   - **URL**: `[BASE_URL]/login`
+   - **Body**: 
+     ```json
+     {
+       "email": "user1@example.com",
+       "password": "password123"
+     }
+     ```
 
-#### `/users/update/:id`
-- **Method:** PATCH
-- **Description:** Update user details by ID.
-- **Authentication:** JWT token required
-- **Request Body:** 
-  ```json
-  {
-    "username": "new_username",
-    "email": "new_email@example.com",
-    "password": "new_password"
-  }
-  ```
-- **Response:** 
-  - `200 OK` on success
-  - `404 Not Found` if user ID does not exist
+3. **SUBMIT PREFERENCE**
 
-#### `/users/delete/:id`
-- **Method:** DELETE
-- **Description:** Delete user by ID.
-- **Authentication:** JWT token required
-- **Response:** 
-  - `200 OK` on success
-  - `404 Not Found` if user ID does not exist
+   - **Method**: POST
+   - **URL**: `[BASE_URL]/preference/7`
+   - **Headers**:
+     - `Authorization: Bearer <token>`
+     - `Content-Type: application/json`
+   - **Body**: 
+     ```json
+     {
+       "fields": ["Tech", "Healthcare", "Politics", "Academic"]
+     }
+     ```
 
-#### `/preferences`
-- **Method:** POST
-- **Description:** Save or update user preferences.
-- **Authentication:** JWT token required
-- **Request Body:** 
-  ```json
-  {
-    "userId": "user_id",
-    "preferences": [1, 0, 1, 1, 0, 0, 1, 0]
-  }
-  ```
-- **Response:** 
-  - `200 OK` on success
-  - `400 Bad Request` if preferences format is invalid
+4. **GET RECOMMENDATIONS**
 
----
+   - **Method**: GET
+   - **URL**: `[BASE_URL]/users/3`
+   - **Headers**:
+     - `Authorization: Bearer <token>`
 
-## Speaker Data API
+5. **MOST POPULAR**
 
-### Endpoints
+   - **Method**: GET
+   - **URL**: `[BASE_URL]/popular`
+   - **Headers**:
+     - `Authorization: Bearer <token>`
 
-#### `/populer`
-- **Method:** GET
-- **Description:** Get the most favorited speakers.
-- **Response:** 
-  - `200 OK` with list of speakers
+6. **DETAIL USER BY ID**
 
-#### `/speaker/:id`
-- **Method:** GET
-- **Description:** Get speaker details by ID.
-- **Response:** 
-  - `200 OK` with speaker details
-  - `404 Not Found` if speaker ID does not exist
+   - **Method**: GET
+   - **URL**: `[BASE_URL]/users/7`
+   - **Headers**:
+     - `Authorization: Bearer <token>`
 
-#### `/search`
-- **Method:** GET
-- **Description:** Search speakers by keyword.
-- **Query Parameters:** `keyword`
-- **Response:** 
-  - `200 OK` with list of matching speakers
+7. **ALL USER**
 
-#### `/favorites`
-- **Method:** POST
-- **Description:** Add a speaker to user favorites.
-- **Authentication:** JWT token required
-- **Request Body:** 
-  ```json
-  {
-    "userId": "user_id",
-    "speakerId": "speaker_id"
-  }
-  ```
-- **Response:** 
-  - `200 OK` on success
-  - `400 Bad Request` if speaker is already a favorite
+   - **Method**: GET
+   - **URL**: `[BASE_URL]/users`
+   - **Headers**:
+     - `Authorization: Bearer <token>`
 
- #### `/favorites`
-- **Method:** DELETE
-- **Description:** Deletes a favorite item by ID.
-- **Authentication:** JWT token required
-- **Request Body:** 
-  ```json
-  {
-    "userId": "user_id",
-    "speakerId": "speaker_id"
-  }
-  ```
-- **Response:** 
-  - `200 OK` Favorite deleted successfully
-  
-#### `/favorites/:userId`
-- **Method:** GET
-- **Description:** Get user's favorite speakers.
-- **Authentication:** JWT token required
-- **Response:** 
-  - `200 OK` with list of favorite speakers
+8. **UPDATE USER**
 
-#### `/recommendations`
-- **Method:** GET
-- **Description:** Get random recommended speakers.
-- **Response:** 
-  - `200 OK` with list of recommended speakers
+   - **Method**: PATCH
+   - **URL**: `[BASE_URL]/users/update/7`
+   - **Headers**:
+     - `Authorization: Bearer <token>`
+   - **Body**: 
+     ```json
+     {
+       "username": "user",
+       "email": "user@com",
+       "password": "111"
+     }
+     ```
 
+9. **DELETE USER**
+
+   - **Method**: DELETE
+   - **URL**: `[BASE_URL]/users/delete/7`
+   - **Headers**:
+     - `Authorization: Bearer <token>`
+   - **Body**: 
+     ```json
+     {
+       "username": "user",
+       "email": "user@com",
+       "password": "111"
+     }
+     ```
+
+10. **DETAIL SPEAKER BY ID**
+
+    - **Method**: GET
+    - **URL**: `[BASE_URL]/speaker/speaker_43`
+
+11. **MOST FAVORITE SPEAKER**
+
+    - **Method**: GET
+    - **URL**: `[BASE_URL]/popular`
+
+12. **SEARCH SPEAKER BY FIELD**
+
+    - **Method**: GET
+    - **URL**: `[BASE_URL]/search?keyword=aca`
+
+13. **ADD FAVORITE SPEAKER**
+
+    - **Method**: POST
+    - **URL**: `[BASE_URL]/favorites`
+    - **Body**: 
+      ```json
+      {
+        "userId": "2",
+        "speakerId": "speaker_3"
+      }
+      ```
+
+14. **GET FAVORITE SPEAKER**
+
+    - **Method**: GET
+    - **URL**: `[BASE_URL]/favorites/2`
+
+15. **DELETE FAVORITE SPEAKER**
+
+    - **Method**: DELETE
+    - **URL**: `[BASE_URL]/favorites`
+    - **Body**: 
+      ```json
+      {
+        "userId": "2",
+        "speakerId": "speaker_3"
+      }
+      ```
+
+16. **RECOMMENDATIONS BY PREFERENCE**
+
+    - **Method**: GET
+    - **URL**: `[BASE_URL]/recommendations/2`
+
+17. **SUBMIT PREFERENCE TO GET RECOMMENDATIONS**
+
+    - **Method**: POST
+    - **URL**: `[BASE_URL]/preference/6`
+    - **Body**: 
+      ```json
+      {
+        "fields": ["Tech", "Sport", "academic", "Politics"]
+      }
+      ```
+
+#### Note
+
+Replace `<token>` with the actual JWT token obtained from the authentication process.
+
+This collection covers various endpoints for user management, preferences, recommendations, and speaker operations within the NARSUMKU-REST API.
 ---
 ## License
 
