@@ -67,7 +67,6 @@ module.exports = {
     });
   },
 
-
   getUserbyEmail: async (email) => {
     return new Promise((resolve, reject) => {
       pool.query('SELECT * FROM users WHERE email = ?', [email], (error, results, fields) => {

@@ -1,6 +1,6 @@
-const { getSpeakerDetails, searchSpeakers, getFavorites, addFavorite, deleteFavorite, getMostFavoritedSpeakers, getRandomRecommendedSpeakers } = require('./speak.service');
+const {  getSpeakerDetails, searchSpeakers, getFavorites, addFavorite, deleteFavorite, getMostFavoritedSpeakers, submitUserPreferences, getSpeakerPreferences,} = require('./speak.service');
 
-// MENU HOME BERISI SPEAKER PALING FAVORIT DAN RANDOM SPEAKER
+// MENU HOME BERISI SPEAKER PALING FAVORIT DAN REKOMENDASI SPEAKER
 const getMostFavorited = async (req, res) => {
   try {
     const data = await getMostFavoritedSpeakers();
@@ -10,6 +10,7 @@ const getMostFavorited = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 // MENAMPILKAN DETAIL DARI SPEAKER
 const getSpeakerDetailsById = async (req, res) => {
@@ -25,6 +26,7 @@ const getSpeakerDetailsById = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
+
 
 // MENCARI SPEAKER BERDASARKAN BIDANGNYA
 const searchSpeakersByField = async (req, res) => {
@@ -96,12 +98,35 @@ const deleteFavoriteController = async (req, res) => {
   }
 };
 
-const getRandomRecommendedSpeakersController = async (req, res) => {
+const submitUserPreferencesController = async (req, res) => {
+  const userId = req.params.userId;
+  const { fields } = req.body;
+
+  if (!fields || !Array.isArray(fields) || fields.length === 0) {
+    return res.status(400).json({ error: 'Invalid input' });
+  }
+
   try {
-    const speakers = await getRandomRecommendedSpeakers();
+    const result = await submitUserPreferences(userId, fields);
+    res.status(201).json(result);
+  } catch (error) {
+    console.error('Error submitting preferences:', error);
+    if (error.message === 'Preferences already submitted') {
+      res.status(409).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+};
+
+const getSpeakerPreferencesController = async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const speakers = await getSpeakerPreferences(userId);
     res.status(200).json(speakers);
   } catch (error) {
-    console.error('Error fetching random recommended speakers:', error);
+    console.error('Error fetching speaker preferences:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -113,5 +138,6 @@ module.exports = {
   addFavoriteController,
   getFavoritesController,
   deleteFavoriteController,
-  getRandomRecommendedSpeakersController,
+  submitUserPreferencesController,
+  getSpeakerPreferencesController,
 };

@@ -2,6 +2,7 @@ const { checkUserExists, create, getUserByID, getUsers, updateUser, deleteUser, 
 const { genSaltSync, hashSync } = require('bcrypt');
 const bcrypt = require('bcrypt');
 const { generateToken } = require('../../auth/validate');
+const pool = require('../../config/database');
 
 const hashPassword = (password) => {
   const salt = genSaltSync(10);
@@ -171,14 +172,25 @@ module.exports = {
         results.password = undefined;
         const jsontoken = generateToken({ result: results });
 
-        return res.json({
-          error: false,
-          message: 'Login successful',
-          loginResult: {
-            userId: results.id,
-            name: results.username,
-            token: jsontoken,
-          },
+        // Query untuk memeriksa preferensi pengguna
+        pool.query('SELECT * FROM user_preferences WHERE userID = ?', [results.id], (error, prefResults) => {
+          if (error) {
+            console.error('Failed to fetch preferences:', error);
+            return res.status(500).json({ error: 'Failed to fetch preferences' });
+          }
+
+          const fillPreferences = prefResults.length > 0; // true jika ada preferensi, false jika tidak ada
+
+          return res.json({
+            error: false,
+            message: 'Login successful',
+            loginResult: {
+              userId: results.id,
+              name: results.username,
+              token: jsontoken,
+              fillPreferences: fillPreferences,
+            },
+          });
         });
       } else {
         console.error('Password mismatch for user:', results.email);

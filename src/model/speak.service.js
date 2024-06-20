@@ -42,6 +42,7 @@ const getMostFavoritedSpeakers = async () => {
   });
 };
 
+
 const getAllSpeakers = async () => {
   return new Promise((resolve, reject) => {
     pool.query(
@@ -76,6 +77,7 @@ const getAllSpeakers = async () => {
     );
   });
 };
+
 
 const getSpeakerDetails = async (speakerId) => {
   return new Promise((resolve, reject) => {
@@ -112,10 +114,10 @@ const getSpeakerDetails = async (speakerId) => {
 const searchSpeakers = async (keyword) => {
   return new Promise((resolve, reject) => {
     const query = `
-SELECT 
+    SELECT 
     d.speaker_id,
     d.full_name AS name,
-    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    d.profile_pic_url,   
     ROUND(ssd.rating_ave, 1) AS rating,
     'Business' AS field
 FROM data d
@@ -127,7 +129,7 @@ UNION
 SELECT 
     d.speaker_id,
     d.full_name AS name,
-    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    d.profile_pic_url,   
     ROUND(ssd.rating_ave, 1) AS rating,
     'Entertainment' AS field
 FROM data d
@@ -139,7 +141,7 @@ UNION
 SELECT 
     d.speaker_id,
     d.full_name AS name,
-    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    d.profile_pic_url,   
     ROUND(ssd.rating_ave, 1) AS rating,
     'Politics' AS field
 FROM data d
@@ -151,7 +153,7 @@ UNION
 SELECT 
     d.speaker_id,
     d.full_name AS name,
-    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    d.profile_pic_url,   
     ROUND(ssd.rating_ave, 1) AS rating,
     'Sport' AS field
 FROM data d
@@ -163,7 +165,7 @@ UNION
 SELECT 
     d.speaker_id,
     d.full_name AS name,
-    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    d.profile_pic_url,   
     ROUND(ssd.rating_ave, 1) AS rating,
     'Tech' AS field
 FROM data d
@@ -175,7 +177,7 @@ UNION
 SELECT 
     d.speaker_id,
     d.full_name AS name,
-    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    d.profile_pic_url,   
     ROUND(ssd.rating_ave, 1) AS rating,
     'Healthcare' AS field
 FROM data d
@@ -187,7 +189,7 @@ UNION
 SELECT 
     d.speaker_id,
     d.full_name AS name,
-    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    d.profile_pic_url,   
     ROUND(ssd.rating_ave, 1) AS rating,
     'Academic' AS field
 FROM data d
@@ -199,7 +201,7 @@ UNION
 SELECT 
     d.speaker_id,
     d.full_name AS name,
-    d.profile_pic_url,  -- Memasukkan kolom profile_pic_url
+    d.profile_pic_url,   
     ROUND(ssd.rating_ave, 1) AS rating,
     'Media_News' AS field
 FROM data d
@@ -218,8 +220,6 @@ ORDER BY
         WHEN LOWER('media_news') LIKE LOWER(?) THEN 8
         ELSE 9
     END;
-
-
     `;
     const params = Array(9).fill(`%${keyword.toLowerCase()}%`);
 
@@ -274,7 +274,7 @@ const addFavorite = async (userId, speakerId) => {
 const getFavorites = async (userId) => {
   return new Promise((resolve, reject) => {
     const query = `
-SELECT DISTINCT
+    SELECT DISTINCT
     d.speaker_id,
     d.full_name AS Name,
     d.experience AS Experience,
@@ -328,11 +328,43 @@ const deleteFavorite = async (userId, speakerId) => {
     });
   });
 };
-
-const getRandomRecommendedSpeakers = async () => {
+const submitUserPreferences = async (userId, fields) => {
   return new Promise((resolve, reject) => {
-    pool.query(
-      `
+    const checkQuery = `
+      SELECT COUNT(*) AS count
+      FROM user_preferences
+      WHERE userID = ?
+    `;
+
+    const insertQuery = `
+      INSERT INTO user_preferences (userID, field)
+      VALUES ?
+    `;
+
+    const values = fields.map((field) => [userId, field]);
+
+    pool.query(checkQuery, [userId], (error, results) => {
+      if (error) {
+        return reject(error);
+      }
+
+      if (results[0].count > 0) {
+        return reject(new Error('Preferences already submitted'));
+      }
+
+      pool.query(insertQuery, [values], (error, results) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve({ message: 'Preferences submitted successfully' });
+      });
+    });
+  });
+};
+
+const getSpeakerPreferences = async (userId) => {
+  return new Promise((resolve, reject) => {
+    const query = `
       SELECT 
           d.speaker_id,
           d.full_name AS \`Full Name\`,
@@ -349,21 +381,27 @@ const getRandomRecommendedSpeakers = async () => {
           data d
       LEFT JOIN 
           speaker_side_data ssd ON d.speaker_id = ssd.speaker_id
+      INNER JOIN 
+          user_preferences up ON (
+            up.userID = ? AND 
+            (d.Category_1 = up.field OR d.Category_2 = up.field OR d.Category_3 = up.field)
+          )
       WHERE 
           d.Category_1 IS NOT NULL OR d.Category_2 IS NOT NULL OR d.Category_3 IS NOT NULL
       ORDER BY 
           RAND()
       LIMIT 7;
-      `,
-      (error, results, fields) => {
-        if (error) {
-          return reject(error);
-        }
-        resolve(results);
+    `;
+
+    pool.query(query, [userId], (error, results) => {
+      if (error) {
+        return reject(error);
       }
-    );
+      resolve(results);
+    });
   });
 };
+
 
 module.exports = {
   getAllSpeakers,
@@ -373,5 +411,6 @@ module.exports = {
   getFavorites,
   deleteFavorite,
   getMostFavoritedSpeakers,
-  getRandomRecommendedSpeakers,
+  submitUserPreferences,
+  getSpeakerPreferences,
 };
